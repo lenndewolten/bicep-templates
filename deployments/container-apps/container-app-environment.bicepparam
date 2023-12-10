@@ -3,7 +3,7 @@ using 'container-app-environment.bicep'
 param containerAppEnvName = 'my-container-app-env'
 param acrName = 'lenndewoltentestacr'
 
-param acrRoles = [
+param roleAssignments = [
   {
     roleDefinitionId: '7f951dda-4ed3-4680-a7ca-43fe172d538d' // ACR PULL
     principalId: '488c3017-5222-4e08-9c1f-10e13bd1a764' // ME

@@ -23,20 +23,16 @@ param acrName string
 @description('Provide the resource group for the container environment.')
 param acrRG string = resourceGroup().name
 
-@description('Provide a name of the managed identity')
+@description('Provide a name of the managed identity.')
 param identityName string = '${containerAppName}-identity'
 
+@description('Provide a name for the storage account if applicable.')
+param storageAccountName string = ''
+
+@description('Provide role assignments scoped to the resource group.')
+param roleAssignments array = []
+
 var acrPullRole = '7f951dda-4ed3-4680-a7ca-43fe172d538d'
-
-resource containerAppEnv 'Microsoft.App/managedEnvironments@2023-05-01' existing = {
-  name: containerAppEnvName
-  scope: resourceGroup(containerAppEnvRG)
-}
-
-resource acr 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' existing = {
-  name: acrName
-  scope: resourceGroup(acrRG)
-}
 
 resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   name: identityName
@@ -44,7 +40,7 @@ resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' 
 }
 
 module containerApp_identity_acrPullRole '../../modules/authorization/role-assignments.bicep' = {
-  name: 'container-app-acr-access'
+  name: 'container-app-acr-access-${containerAppName}'
   scope: resourceGroup(acrRG)
   params: {
     principalId: identity.properties.principalId
@@ -52,34 +48,61 @@ module containerApp_identity_acrPullRole '../../modules/authorization/role-assig
   }
 }
 
-resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
-  name: containerAppName
-  location: location
+module containerApp '../../modules/containers/container-app.bicep' = {
+  name: 'container-app-${containerAppName}'
   dependsOn: [
     containerApp_identity_acrPullRole
   ]
-  identity: {
-    type: 'UserAssigned'
-    userAssignedIdentities: {
-      '${identity.id}': {}
-    }
-  }
-  properties: {
-    configuration: {
-      ingress: ingress
-      registries: [
-        {
-          identity: identity.id
-          server: acr.properties.loginServer
-        }
-      ]
-    }
-    environmentId: containerAppEnv.id
-    template: {
-      containers: containers
-      scale: scale
-    }
+  params: {
+    containerAppEnvName: containerAppEnvName
+    containerAppEnvRG: containerAppEnvRG
+    acrName: acrName
+    acrRG: acrRG
+    identityId: identity.id
+    name: containerAppName
+    ingress: ingress
+    containers: containers
+    scale: scale
+    location: location
   }
 }
 
-output fqdn string = containerApp.properties.configuration.ingress.fqdn
+var storageBlobDataContributorRole = 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
+var storageQueueDataContributorRole = '974c5e8b-45b9-4653-ba55-5f855dd0fb88'
+var storageTableDataContributorRole = '0a9a7e1f-b9d0-4cc4-a60d-0319b160aaa3'
+
+module storageaccount '../../modules/storage/storageaccount.bicep' = if (storageAccountName != '') {
+  name: 'storageaccount-${containerAppName}'
+  params: {
+    name: storageAccountName
+    location: location
+    roleAssignments: [
+      {
+        roleDefinitionId: storageBlobDataContributorRole
+        principalId: identity.properties.principalId
+        principalType: 'ServicePrincipal'
+      }
+      {
+        roleDefinitionId: storageQueueDataContributorRole
+        principalId: identity.properties.principalId
+        principalType: 'ServicePrincipal'
+      }
+      {
+        roleDefinitionId: storageTableDataContributorRole
+        principalId: identity.properties.principalId
+        principalType: 'ServicePrincipal'
+      }
+    ]
+  }
+}
+
+module rgRoleAssignments '../../modules/authorization/role-assignments.bicep' = [for assignment in roleAssignments: {
+  name: guid(resourceGroup().id, assignment.principalId, assignment.roleDefinitionId)
+  params: {
+    roleDefinitionId: assignment.roleDefinitionId
+    principalId: assignment.principalId
+    principalType: assignment.principalType
+  }
+}]
+
+output fqdn string = containerApp.outputs.fqdn

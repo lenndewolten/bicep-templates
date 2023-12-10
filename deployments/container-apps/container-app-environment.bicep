@@ -14,8 +14,8 @@ param acrName string
 @description('Provide a tier of your Azure Container Registry.')
 param acrSku string = 'Basic'
 
-@description('Provide role assignments of your Azure Container Registry.')
-param acrRoles array = []
+@description('Provide role assignments for the resource group.')
+param roleAssignments array = []
 
 @minLength(5)
 @maxLength(50)
@@ -48,14 +48,11 @@ module containerAppEnv '../../modules/containers/container-app-environment.bicep
   }
 }
 
-module acrRoleAssignments '../../modules/authorization/role-assignments.bicep' = [for identity in acrRoles: {
-  name: guid(resourceGroup().id, identity.principalId, identity.roleDefinitionId)
-  dependsOn: [
-    acr
-  ]
+module rgRoleAssignments '../../modules/authorization/role-assignments.bicep' = [for assignment in roleAssignments: {
+  name: guid(resourceGroup().id, assignment.principalId, assignment.roleDefinitionId)
   params: {
-    roleDefinitionId: identity.roleDefinitionId
-    principalId: identity.principalId
-    principalType: identity.principalType
+    roleDefinitionId: assignment.roleDefinitionId
+    principalId: assignment.principalId
+    principalType: assignment.principalType
   }
 }]
