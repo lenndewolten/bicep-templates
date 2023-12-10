@@ -26,6 +26,8 @@ param acrRG string = resourceGroup().name
 @description('Provide a name of the managed identity')
 param identityName string = '${containerAppName}-identity'
 
+var acrPullRole = '7f951dda-4ed3-4680-a7ca-43fe172d538d'
+
 resource containerAppEnv 'Microsoft.App/managedEnvironments@2023-05-01' existing = {
   name: containerAppEnvName
   scope: resourceGroup(containerAppEnvRG)
@@ -41,12 +43,12 @@ resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' 
   location: location
 }
 
-module containerApp_identity_acrPullRole 'container-app-acr-access.bicep' = {
+module containerApp_identity_acrPullRole '../../modules/authorization/role-assignments.bicep' = {
   name: 'container-app-acr-access'
   scope: resourceGroup(acrRG)
   params: {
-    identityName: identity.name
-    identityRG: resourceGroup().name
+    principalId: identity.properties.principalId
+    roleDefinitionId: acrPullRole
   }
 }
 

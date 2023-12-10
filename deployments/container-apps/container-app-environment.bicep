@@ -48,13 +48,13 @@ module containerAppEnv '../../modules/containers/container-app-environment.bicep
   }
 }
 
-resource acrRoleAssignments 'Microsoft.Authorization/roleAssignments@2022-04-01' = [for identity in acrRoles: {
+module acrRoleAssignments '../../modules/authorization/role-assignments.bicep' = [for identity in acrRoles: {
   name: guid(resourceGroup().id, identity.principalId, identity.roleDefinitionId)
   dependsOn: [
     acr
   ]
-  properties: {
-    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', identity.roleDefinitionId)
+  params: {
+    roleDefinitionId: identity.roleDefinitionId
     principalId: identity.principalId
     principalType: identity.principalType
   }
