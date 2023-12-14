@@ -24,7 +24,7 @@ param ingress = {
 }
 param containers = [
   {
-    image: 'lenndewoltentestacr.azurecr.io/containerapps-storageaccount:latest'
+    image: 'lenndewoltentestacr.azurecr.io/containerapps-storageaccount:v2'
     name: 'hello-world-container'
     resources: {
       cpu: json('0.25')

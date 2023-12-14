@@ -86,7 +86,7 @@ module containerApp '../../modules/containers/container-app.bicep' = {
     name: containerAppName
     ingress: ingress
     containers: [for container in containers: union(container, {
-        env: empty(container.env) ? containerEnv : concat(containerEnv, container.env)
+        env: contains(container, 'env') ? concat(containerEnv, container.env) : containerEnv
       })]
     scale: scale
     location: location
