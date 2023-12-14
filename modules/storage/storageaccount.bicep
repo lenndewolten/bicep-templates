@@ -29,3 +29,7 @@ resource storageRoleAssignments 'Microsoft.Authorization/roleAssignments@2022-04
     principalType: assignment.principalType
   }
 }]
+
+output blobPrimaryEndpoints string = storageAccount.properties.primaryEndpoints.blob
+output tablePrimaryEndpoints string = storageAccount.properties.primaryEndpoints.table
+output queuePrimaryEndpoints string = storageAccount.properties.primaryEndpoints.queue
