@@ -39,7 +39,7 @@ resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' 
   location: location
 }
 
-module containerApp_identity_acrPullRole '../../modules/authorization/role-assignments.bicep' = {
+module containerApp_identity_acrPullRole './role-assignments.bicep' = {
   name: 'container-app-acr-access-${containerAppName}'
   scope: resourceGroup(acrRG)
   params: {
@@ -96,8 +96,8 @@ module storageaccount '../../modules/storage/storageaccount.bicep' = if (storage
   }
 }
 
-module rgRoleAssignments '../../modules/authorization/role-assignments.bicep' = [for assignment in roleAssignments: {
-  name: guid(resourceGroup().id, assignment.principalId, assignment.roleDefinitionId)
+module rgRoleAssignments './role-assignments.bicep' = [for assignment in roleAssignments: {
+  name: '${assignment.roleDefinitionId}-role-assignment'
   params: {
     roleDefinitionId: assignment.roleDefinitionId
     principalId: assignment.principalId

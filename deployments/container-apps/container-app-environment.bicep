@@ -48,8 +48,8 @@ module containerAppEnv '../../modules/containers/container-app-environment.bicep
   }
 }
 
-module rgRoleAssignments '../../modules/authorization/role-assignments.bicep' = [for assignment in roleAssignments: {
-  name: guid(resourceGroup().id, assignment.principalId, assignment.roleDefinitionId)
+module rgRoleAssignments './role-assignments.bicep' = [for assignment in roleAssignments: {
+  name: '${assignment.roleDefinitionId}-role-assignment'
   params: {
     roleDefinitionId: assignment.roleDefinitionId
     principalId: assignment.principalId

@@ -32,3 +32,8 @@ Deploy a template
 ```bash
 az deployment group create --resource-group my-container-apps --template-file .\container-app-environment.bicep  --parameters .\container-app-environment.bicepparam
 ```
+
+## Templates
+
+- [container-app-environment.bicep](container-app-environment.bicep): This template sets up a containerized application environment in Azure, including a Log Analytics workspace, Azure Container Registry, and an Azure Container App Environment.
+- [container-app.bicep](container-app.bicep): The template sets up a containerized application environment with necessary Azure resources, including a managed identity, Azure Container Registry access, container deployment, optional storage account, and specified role assignments.

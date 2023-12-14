@@ -9,7 +9,7 @@ param principalType string = 'ServicePrincipal'
 
 var role = resourceId('Microsoft.Authorization/roleDefinitions', roleDefinitionId)
 
-resource containerApp_identity_acrPullRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+resource assignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(resourceGroup().id, principalId, roleDefinitionId)
   properties: {
     roleDefinitionId: role

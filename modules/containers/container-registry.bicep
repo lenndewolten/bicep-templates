@@ -22,22 +22,6 @@ resource acrResource 'Microsoft.ContainerRegistry/registries@2023-01-01-preview'
   }
   properties: {
     adminUserEnabled: false
-    // policies: {
-    //   quarantinePolicy: {
-    //     status: 'disabled'
-    //   }
-    //   trustPolicy: {
-    //     status: 'disabled'
-    //   }
-    //   softDeletePolicy: {
-    //     status: 'enabled'
-    //     retentionDays: 7
-    //   }
-    //   retentionPolicy: {
-    //     status: 'enabled'
-    //     days: 7
-    //   }
-    // }
   }
 }
 
