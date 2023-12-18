@@ -48,6 +48,30 @@ module containerApp_identity_acrPullRole './role-assignments.bicep' = {
   }
 }
 
+var defaultContainerEnv = [
+  {
+    name: 'AZURE_CLIENT_ID'
+    value: identity.properties.clientId
+  }
+]
+
+var storageAccountContainerEnv = storageAccountName != '' ? [
+  {
+    name: 'STORAGE_ACCOUNT_TABLE_URI'
+    value: storageaccount.outputs.tablePrimaryEndpoints
+  }
+  {
+    name: 'STORAGE_ACCOUNT_BLOB_URI'
+    value: storageaccount.outputs.blobPrimaryEndpoints
+  }
+  {
+    name: 'STORAGE_ACCOUNT_QUEUE_URI'
+    value: storageaccount.outputs.queuePrimaryEndpoints
+  }
+] : []
+
+var containerEnv = concat(defaultContainerEnv, storageAccountName != '' ? storageAccountContainerEnv : [])
+
 module containerApp '../../modules/containers/container-app.bicep' = {
   name: 'container-app-${containerAppName}'
   dependsOn: [
@@ -61,7 +85,9 @@ module containerApp '../../modules/containers/container-app.bicep' = {
     identityId: identity.id
     name: containerAppName
     ingress: ingress
-    containers: containers
+    containers: [for container in containers: union(container, {
+        env: contains(container, 'env') ? concat(containerEnv, container.env) : containerEnv
+      })]
     scale: scale
     location: location
   }
