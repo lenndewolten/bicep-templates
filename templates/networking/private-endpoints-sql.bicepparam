@@ -1,4 +1,4 @@
-using 'private-endpoints.bicep'
+using 'private-endpoint-sql.bicep'
 
 param sqlServerName = 'testlennartsqlserver'
 param databaseName = 'testlennartdb'

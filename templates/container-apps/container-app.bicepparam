@@ -30,6 +30,12 @@ param containers = [
       cpu: json('0.25')
       memory: '0.5Gi'
     }
+    env: [
+      {
+        name: 'TEST_VAR1'
+        value: 'hello world'
+      }
+    ]
   }
 ]
 param scale = {
