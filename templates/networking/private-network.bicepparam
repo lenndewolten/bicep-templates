@@ -6,4 +6,4 @@ param privateLinkSubResources = [
 ]
 
 param vmAdminUsername = 'testlennart'
-param vmAdminPassword = 'Mysecurepassword123!'
+param vmAdminPassword = ''
