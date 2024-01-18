@@ -29,9 +29,6 @@ param identityName string = '${containerAppName}-identity'
 @description('Provide a name for the storage account if applicable.')
 param storageAccountName string = ''
 
-@description('Provide role assignments scoped to the resource group.')
-param roleAssignments array = []
-
 var acrPullRole = '7f951dda-4ed3-4680-a7ca-43fe172d538d'
 
 resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
@@ -39,7 +36,7 @@ resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' 
   location: location
 }
 
-module containerApp_identity_acrPullRole './role-assignments.bicep' = {
+module containerApp_identity_acrPullRole 'modules/role-assignments.bicep' = {
   name: 'container-app-acr-access-${containerAppName}'
   scope: resourceGroup(acrRG)
   params: {
@@ -72,7 +69,7 @@ var storageAccountContainerEnv = storageAccountName != '' ? [
 
 var containerEnv = concat(defaultContainerEnv, storageAccountName != '' ? storageAccountContainerEnv : [])
 
-module containerApp '../../modules/containers/container-app.bicep' = {
+module containerApp 'modules/container-app.bicep' = {
   name: 'container-app-${containerAppName}'
   dependsOn: [
     containerApp_identity_acrPullRole
@@ -97,7 +94,7 @@ var storageBlobDataContributorRole = 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
 var storageQueueDataContributorRole = '974c5e8b-45b9-4653-ba55-5f855dd0fb88'
 var storageTableDataContributorRole = '0a9a7e1f-b9d0-4cc4-a60d-0319b160aaa3'
 
-module storageaccount '../../modules/storage/storageaccount.bicep' = if (storageAccountName != '') {
+module storageaccount 'modules/storageaccount.bicep' = if (storageAccountName != '') {
   name: 'storageaccount-${containerAppName}'
   params: {
     name: storageAccountName
@@ -121,14 +118,5 @@ module storageaccount '../../modules/storage/storageaccount.bicep' = if (storage
     ]
   }
 }
-
-module rgRoleAssignments './role-assignments.bicep' = [for assignment in roleAssignments: {
-  name: '${assignment.roleDefinitionId}-role-assignment'
-  params: {
-    roleDefinitionId: assignment.roleDefinitionId
-    principalId: assignment.principalId
-    principalType: assignment.principalType
-  }
-}]
 
 output fqdn string = containerApp.outputs.fqdn
