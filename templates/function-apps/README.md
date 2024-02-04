@@ -17,13 +17,13 @@ az account set --name <nameorid>
 Create a resource group:
 
 ```bash
-az group create --location eastus --resource-group myfunctionapp
+az group create --location eastus --resource-group <resource-group>
 ```
 
 Deploy a template:
 
 ```bash
-az deployment group create --resource-group myfunctionapp --template-file .\python-app.bicep  --parameters .\python-app.bicepparam
+az deployment group create --resource-group <resource-group> --template-file .\python-app.bicep  --parameters .\python-app.bicepparam
 ```
 
 ## Templates
@@ -37,7 +37,7 @@ az deployment group create --resource-group myfunctionapp --template-file .\pyth
 If not yet done, deploy the azure resources:
 
 ```bash
-az deployment group create --resource-group myfunctionapp --template-file .\python-app.bicep  --parameters .\python-app.bicepparam
+az deployment group create --resource-group <resource-group> --template-file .\python-app.bicep  --parameters .\python-app.bicepparam
 ```
 
 Zip the code:
@@ -60,5 +60,5 @@ az storage blob upload --account-name <storage-account-name> --auth-mode login -
 Set the `WEBSITE_RUN_FROM_PACKAGE=<url>` in the app config with the blob url
 
 ```bash
-az functionapp config appsettings set --name $functionName --resource-group $rg --settings "WEBSITE_RUN_FROM_PACKAGE=https://<storage-account-name>.blob.core.windows.net/appcontainer/app.zip"
+az functionapp config appsettings set --name <function-app-name> --resource-group <resource-group> --settings "WEBSITE_RUN_FROM_PACKAGE=https://<storage-account-name>.blob.core.windows.net/appcontainer/app.zip"
 ```
