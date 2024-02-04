@@ -1,1 +1,9 @@
+**\.vscode
 **\.localdeploy.ps1
+**\.env
+
+## Function app
+**\.venv
+**\__pycache__
+**\local.settings.json
+**\.python_packages
