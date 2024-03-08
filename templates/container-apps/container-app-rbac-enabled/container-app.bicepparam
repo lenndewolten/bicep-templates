@@ -13,7 +13,7 @@ param ingress = {
   allowInsecure: false
   clientCertificateMode: 'ignore'
   external: true
-  targetPort: 8080
+  targetPort: 80
   transport: 'auto'
   traffic: [
     {
@@ -24,7 +24,7 @@ param ingress = {
 }
 param containers = [
   {
-    image: 'lenndewoltentestacr.azurecr.io/containerapps-storageaccount:v2'
+    image: 'lenndewoltentestacr.azurecr.io/containerapps-helloworld:latest'
     name: 'hello-world-container'
     resources: {
       cpu: json('0.25')

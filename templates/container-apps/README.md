@@ -36,4 +36,5 @@ az deployment group create --resource-group my-container-apps --template-file .\
 ## Templates
 
 - [container-app-environment.bicep](container-app-environment.bicep): This template sets up a containerized application environment in Azure, including a Log Analytics workspace, Azure Container Registry, and an Azure Container App Environment.
-- [container-app.bicep](container-app.bicep): The template sets up a containerized application environment with necessary Azure resources, including a managed identity, Azure Container Registry access, container deployment, optional storage account, and specified role assignments.
+- [container-app-rbac-enabled/container-app.bicep](container-app-rbac-enabled/container-app.bicep): The template sets up a containerized application environment with necessary Azure resources, including a managed identity, Azure Container Registry access, container deployment, optional storage account, and specified role assignments.
+- [container-app-file-share/container-app.bicep](container-app-file-share/container-app.bicep): The template sets up a containerized application environment with necessary Azure resources, including a file share linked to the container's volumn mount, Azure Container Registry access, container deployment, optional storage account, and specified role assignments.
