@@ -61,7 +61,7 @@ resource subnet 'Microsoft.Network/virtualNetworks/subnets@2023-04-01' existing 
   name: subnetName
 }
 
-module sql_privateEndpoint 'modules/private-endpoint.bicep' = {
+module sql_privateEndpoint '../../networking/modules/private-endpoint.bicep' = {
   name: 'sql-private-endpoint'
   params: {
     location: location

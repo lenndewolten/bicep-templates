@@ -4,30 +4,41 @@
 
 Login
 
-```bash
+```ps
 az login
 ```
 
 Optional: set default subscription
 
-```bash
+```ps
 az account set --name <nameorid>
+```
+
+Set variables, adjust values where needed:
+
+```ps
+$rg = 'private-network'
+$location = 'westeurope'
+$adminPassword = 'Th3B3stPa$$word!'
+$template = '.\private-network.bicep'
+$parameters = '.\private-network.bicepparam'
 ```
 
 Create a resource group:
 
-```bash
-az group create --location eastus --resource-group <your-rg>
+```ps
+az group create -n $rg --location $location
 ```
 
 Deploy a template
 
-```bash
-az deployment group create --resource-group <your-rg> --template-file .\private-network.bicep  --parameters .\private-network.bicepparam
+```ps
+az deployment group create --resource-group $rg --template-file $template --parameters $parameters --parameters vmAdminPassword=$adminPassword
 ```
 
 ## Templates
 
 - [private-network.bicep](private-network.bicep): This template sets up a VNET, one or more Private DNS Zones, VM that can be used as a jumpbox and an Azure Bastion host.
-- [private-sql-server.bicep](private-sql-server.bicep): This template sets up a private SQL server and database with a private endpoint connection.
-- [private-storage-account.bicep](private-storage-account.bicep): This template sets up a private storage account with multiple private endpoint connections for table, queue and blob.
+  You can use this network to deploy private resources like:
+  - SQL server: [private-storage-account.bicep.bicep](../storage/storageaccount/private-storage-account.bicep)
+  - Storage account: [private-sql-server.bicep](../storage/sql/private-sql-server.bicep)

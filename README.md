@@ -28,8 +28,9 @@ Replace `<ResourceGroupName>` with your desired Azure resource group name, `<Tem
 
 ## Templates
 
-- **Container Apps:** Templates to set up a containerized application environment in Azure.
-- **Function Apps:** Templates to set up function apps in Azure.
+- **Compute**
+  - **Container Apps:** Templates to set up a containerized application environment in Azure.
+  - **Function Apps:** Templates to set up function apps in Azure.
 - **Networking:** Templates to set up a private network, including private DNS zones and private endpoints with the corresponding Azure storage resources
 - **Subscription:** Template to set up subscription wide RBAC role assignment for a user (ME!)
 

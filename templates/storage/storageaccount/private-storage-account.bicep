@@ -83,15 +83,17 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
   }
 }
 
-module private_endpoints 'modules/private-endpoint.bicep' = [for subResource in [ 'table', 'queue', 'blob' ]: {
-  name: '${subResource}-pvt'
-  params: {
-    location: location
-    vnetRsourceGroup: vnetRsourceGroup
-    subnetId: subnet.id
-    privateEndpointName: '${subResource}-${storageAccountName}'
-    privateLinkServiceId: storageAccount.id
-    privateLinkSubResource: subResource
-    customNetworkInterfaceName: '${storageAccountName}-${subResource}-pvt-nic'
+module private_endpoints '../../networking/modules/private-endpoint.bicep' = [
+  for subResource in ['table', 'queue', 'blob']: {
+    name: '${subResource}-pvt'
+    params: {
+      location: location
+      vnetRsourceGroup: vnetRsourceGroup
+      subnetId: subnet.id
+      privateEndpointName: '${subResource}-${storageAccountName}'
+      privateLinkServiceId: storageAccount.id
+      privateLinkSubResource: subResource
+      customNetworkInterfaceName: '${storageAccountName}-${subResource}-pvt-nic'
+    }
   }
-}]
+]
