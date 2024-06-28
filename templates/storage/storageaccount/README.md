@@ -18,7 +18,7 @@ Set variables, adjust values where needed:
 
 ```ps
 $rg = 'private-storageaccount'
-$location = 'westeurope'
+$location = 'northeurope'
 $template = '.\private-storage-account.bicep'
 $parameters = '.\private-storage-account.bicepparam'
 ```

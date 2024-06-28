@@ -18,7 +18,7 @@ Set variables, adjust values where needed:
 
 ```ps
 $rg = 'private-network'
-$location = 'westeurope'
+$location = 'northeurope'
 $adminPassword = 'Th3B3stPa$$word!'
 $template = '.\private-network.bicep'
 $parameters = '.\private-network.bicepparam'
