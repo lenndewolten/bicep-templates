@@ -12,12 +12,12 @@ param subnetName string
 
 var storageAccountName = take('lenny${uniqueString(resourceGroup().id)}', 15)
 
-resource vnet 'Microsoft.Network/virtualNetworks@2023-04-01' existing = {
+resource vnet 'Microsoft.Network/virtualNetworks@2023-11-01' existing = {
   name: vnetName
   scope: resourceGroup(vnetRsourceGroup)
 }
 
-resource subnet 'Microsoft.Network/virtualNetworks/subnets@2023-04-01' existing = {
+resource subnet 'Microsoft.Network/virtualNetworks/subnets@2023-11-01' existing = {
   parent: vnet
   name: subnetName
 }
@@ -83,15 +83,17 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
   }
 }
 
-module private_endpoints 'modules/private-endpoint.bicep' = [for subResource in [ 'table', 'queue', 'blob' ]: {
-  name: '${subResource}-pvt'
-  params: {
-    location: location
-    vnetRsourceGroup: vnetRsourceGroup
-    subnetId: subnet.id
-    privateEndpointName: '${subResource}-${storageAccountName}'
-    privateLinkServiceId: storageAccount.id
-    privateLinkSubResource: subResource
-    customNetworkInterfaceName: '${storageAccountName}-${subResource}-pvt-nic'
+module private_endpoints '../../networking/modules/private-endpoint.bicep' = [
+  for subResource in ['table', 'queue', 'blob']: {
+    name: '${subResource}-pvt'
+    params: {
+      location: location
+      vnetRsourceGroup: vnetRsourceGroup
+      subnetId: subnet.id
+      privateEndpointName: '${subResource}-${storageAccountName}'
+      privateLinkServiceId: storageAccount.id
+      privateLinkSubResource: subResource
+      customNetworkInterfaceName: '${storageAccountName}-${subResource}-pvt-nic'
+    }
   }
-}]
+]

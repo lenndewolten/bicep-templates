@@ -23,7 +23,7 @@ param sqlAdministratorLoginPassword string
 @description('The name the SQL database.')
 param databaseName string
 
-resource sqlServer 'Microsoft.Sql/servers@2022-05-01-preview' = {
+resource sqlServer 'Microsoft.Sql/servers@2023-05-01-preview' = {
   name: sqlServerName
   location: location
   properties: {
@@ -34,7 +34,7 @@ resource sqlServer 'Microsoft.Sql/servers@2022-05-01-preview' = {
   }
 }
 
-resource database 'Microsoft.Sql/servers/databases@2022-05-01-preview' = {
+resource database 'Microsoft.Sql/servers/databases@2023-05-01-preview' = {
   parent: sqlServer
   name: databaseName
   location: location
@@ -51,17 +51,17 @@ resource database 'Microsoft.Sql/servers/databases@2022-05-01-preview' = {
   }
 }
 
-resource vnet 'Microsoft.Network/virtualNetworks@2023-04-01' existing = {
+resource vnet 'Microsoft.Network/virtualNetworks@2023-11-01' existing = {
   name: vnetName
   scope: resourceGroup(vnetRsourceGroup)
 }
 
-resource subnet 'Microsoft.Network/virtualNetworks/subnets@2023-04-01' existing = {
+resource subnet 'Microsoft.Network/virtualNetworks/subnets@2023-11-01' existing = {
   parent: vnet
   name: subnetName
 }
 
-module sql_privateEndpoint 'modules/private-endpoint.bicep' = {
+module sql_privateEndpoint '../../networking/modules/private-endpoint.bicep' = {
   name: 'sql-private-endpoint'
   params: {
     location: location

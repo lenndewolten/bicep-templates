@@ -48,7 +48,7 @@ var dnsZoneNameMapping = {
 }
 var dnsZonesNames = [for resource in privateLinkSubResources: 'privatelink${dnsZoneNameMapping[resource]}']
 
-resource vnet 'Microsoft.Network/virtualNetworks@2023-04-01' = {
+resource vnet 'Microsoft.Network/virtualNetworks@2023-11-01' = {
   name: vnetName
   location: location
   properties: {
@@ -76,26 +76,28 @@ resource vnet 'Microsoft.Network/virtualNetworks@2023-04-01' = {
   }
 }
 
-module privateDnsZones './modules/private-dns-zone.bicep' = [for dnsZoneName in dnsZonesNames: {
-  name: dnsZoneName
-  params: {
+module privateDnsZones './modules/private-dns-zone.bicep' = [
+  for dnsZoneName in dnsZonesNames: {
     name: dnsZoneName
-    vnetName: vnetName
-    tags: {
-      privateLink: 'true'
+    params: {
+      name: dnsZoneName
+      vnetName: vnetName
+      tags: {
+        privateLink: 'true'
+      }
     }
+    dependsOn: [
+      vnet
+    ]
   }
-  dependsOn: [
-    vnet
-  ]
-}]
+]
 
-resource azureBastionSubnet 'Microsoft.Network/virtualNetworks/subnets@2023-04-01' existing = {
+resource azureBastionSubnet 'Microsoft.Network/virtualNetworks/subnets@2023-11-01' existing = {
   parent: vnet
   name: _azureBastionSubnet.name
 }
 
-resource azureBastionPublicIpAddress 'Microsoft.Network/publicIPAddresses@2023-04-01' = {
+resource azureBastionPublicIpAddress 'Microsoft.Network/publicIPAddresses@2023-11-01' = {
   name: '${bastionName}-publicip'
   location: location
   sku: {
@@ -106,7 +108,7 @@ resource azureBastionPublicIpAddress 'Microsoft.Network/publicIPAddresses@2023-0
   }
 }
 
-resource bastion 'Microsoft.Network/bastionHosts@2023-04-01' = {
+resource bastion 'Microsoft.Network/bastionHosts@2023-11-01' = {
   name: bastionName
   location: location
   sku: {
@@ -130,12 +132,12 @@ resource bastion 'Microsoft.Network/bastionHosts@2023-04-01' = {
   }
 }
 
-resource defaultSubnet 'Microsoft.Network/virtualNetworks/subnets@2023-04-01' existing = {
+resource defaultSubnet 'Microsoft.Network/virtualNetworks/subnets@2023-11-01' existing = {
   parent: vnet
   name: _defaultSubnet.name
 }
 
-resource vmNetworkInterface 'Microsoft.Network/networkInterfaces@2023-04-01' = {
+resource vmNetworkInterface 'Microsoft.Network/networkInterfaces@2023-11-01' = {
   name: '${vmName}-NetInt'
   location: location
   properties: {

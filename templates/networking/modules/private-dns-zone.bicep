@@ -7,7 +7,7 @@ param vnetName string
 @description('Resource tags')
 param tags object = {}
 
-resource vnet 'Microsoft.Network/virtualNetworks@2023-04-01' existing = {
+resource vnet 'Microsoft.Network/virtualNetworks@2023-11-01' existing = {
   name: vnetName
 }
 
