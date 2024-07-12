@@ -40,6 +40,7 @@ If not yet done, deploy the azure resources:
 az deployment group create --resource-group <resource-group> --template-file .\python-app.bicep  --parameters .\python-app.bicepparam
 ```
 
+Navigate to the sample app
 Zip the code:
 
 ```powershell
