@@ -1,3 +1,5 @@
+import { Container, Ingress } from 'types/types.bicep'
+
 @description('Provide a location for the container resources.')
 param location string = resourceGroup().location
 
@@ -10,10 +12,10 @@ param containerAppEnvRG string = resourceGroup().name
 param containerAppName string
 
 @description('Provide the ingress for the container app: https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps?pivots=deployment-language-bicep#ingress')
-param ingress object
+param ingress Ingress
 
 @description('Provide an array of containers for the container app: https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps?pivots=deployment-language-bicep#container')
-param containers array
+param containers Container[]
 
 @description('Provide the scale for the container app: https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps?pivots=deployment-language-bicep#scale')
 param scale object
@@ -52,20 +54,22 @@ var defaultContainerEnv = [
   }
 ]
 
-var storageAccountContainerEnv = storageAccountName != '' ? [
-  {
-    name: 'STORAGE_ACCOUNT_TABLE_URI'
-    value: storageaccount.outputs.tablePrimaryEndpoints
-  }
-  {
-    name: 'STORAGE_ACCOUNT_BLOB_URI'
-    value: storageaccount.outputs.blobPrimaryEndpoints
-  }
-  {
-    name: 'STORAGE_ACCOUNT_QUEUE_URI'
-    value: storageaccount.outputs.queuePrimaryEndpoints
-  }
-] : []
+var storageAccountContainerEnv = storageAccountName != ''
+  ? [
+      {
+        name: 'STORAGE_ACCOUNT_TABLE_URI'
+        value: storageaccount.outputs.tablePrimaryEndpoints
+      }
+      {
+        name: 'STORAGE_ACCOUNT_BLOB_URI'
+        value: storageaccount.outputs.blobPrimaryEndpoints
+      }
+      {
+        name: 'STORAGE_ACCOUNT_QUEUE_URI'
+        value: storageaccount.outputs.queuePrimaryEndpoints
+      }
+    ]
+  : []
 
 var containerEnv = concat(defaultContainerEnv, storageAccountName != '' ? storageAccountContainerEnv : [])
 
@@ -82,9 +86,11 @@ module containerApp 'modules/container-app.bicep' = {
     identityId: identity.id
     name: containerAppName
     ingress: ingress
-    containers: [for container in containers: union(container, {
+    containers: [
+      for container in containers: union(container, {
         env: contains(container, 'env') ? concat(containerEnv, container.env) : containerEnv
-      })]
+      })
+    ]
     scale: scale
     location: location
   }

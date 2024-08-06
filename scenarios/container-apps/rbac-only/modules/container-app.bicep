@@ -1,3 +1,5 @@
+import { Container, Ingress } from '../types/types.bicep'
+
 @minLength(5)
 @maxLength(50)
 @description('Provide a name of your Container App Environment.')
@@ -20,10 +22,10 @@ param acrName string
 param acrRG string = resourceGroup().name
 
 @description('Provide the ingress for the container app: https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps?pivots=deployment-language-bicep#ingress')
-param ingress object
+param ingress Ingress
 
 @description('Provide an array of containers for the container app: https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps?pivots=deployment-language-bicep#container')
-param containers array
+param containers Container[]
 
 @description('Provide the scale for the container app: https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps?pivots=deployment-language-bicep#scale')
 param scale object

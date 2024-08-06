@@ -1,4 +1,4 @@
-using 'container-app.bicep'
+using 'main.bicep'
 
 param containerAppEnvName = 'my-container-app-env'
 param containerAppEnvRG = 'my-container-apps'
