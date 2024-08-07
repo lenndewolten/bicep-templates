@@ -1,4 +1,4 @@
-import { Container, Ingress } from '../types/types.bicep'
+import { Container, Ingress, Volumn } from '../types/containerapps.bicep'
 
 @minLength(5)
 @maxLength(50)
@@ -29,6 +29,9 @@ param containers Container[]
 
 @description('Provide the scale for the container app: https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps?pivots=deployment-language-bicep#scale')
 param scale object
+
+@description('Provide the volumes for the container app')
+param volumes Volumn[] = []
 
 resource containerAppEnv 'Microsoft.App/managedEnvironments@2023-05-01' existing = {
   name: containerAppEnvName
@@ -61,8 +64,16 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
     }
     environmentId: containerAppEnv.id
     template: {
-      containers: containers
+      containers: [
+        for container in containers: union(container, {
+          resources: {
+            cpu: json(container.resources.cpu)
+            memory: container.resources.memory
+          }
+        })
+      ]
       scale: scale
+      volumes: volumes
     }
   }
 }

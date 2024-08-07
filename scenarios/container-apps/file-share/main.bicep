@@ -1,4 +1,4 @@
-import { Resource, Image } from 'types/types.bicep'
+import { Container, Ingress } from '../../../types/containerapps.bicep'
 
 @description('Provide a location for the container resources.')
 param location string = resourceGroup().location
@@ -22,11 +22,14 @@ param identityName string = '${containerAppName}-identity'
 @description('Provide a name for the storage account if applicable.')
 param storageAccountName string
 
-@description('Provide the Container resource requirements.')
-param resources Resource
+@description('Provide an array of containers for the container app')
+param containers Container[]
 
-@description('Provide the tag of the image used by the app.')
-param image Image
+@description('Provide the ingress for the container app')
+param ingress Ingress
+
+@description('Provide the scale for the container app: https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps?pivots=deployment-language-bicep#scale')
+param scale object
 
 var acrPullRole = '7f951dda-4ed3-4680-a7ca-43fe172d538d'
 
@@ -35,7 +38,7 @@ resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' 
   location: location
 }
 
-module containerApp_identity_acrPullRole 'modules/role-assignments.bicep' = {
+module containerApp_identity_acrPullRole '../../../shared/role-assignments.bicep' = {
   name: 'container-app-acr-access-${containerAppName}'
   scope: resourceGroup(acrRG)
   params: {
@@ -44,26 +47,14 @@ module containerApp_identity_acrPullRole 'modules/role-assignments.bicep' = {
   }
 }
 
-resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
-  name: storageAccountName
-  location: location
-  sku: { name: 'Standard_LRS' }
-  kind: 'StorageV2'
-  properties: {
-    allowSharedKeyAccess: true
+module storageAccount '../../../shared/storageaccount.bicep' = {
+  name: 'storageaccount-${containerAppName}'
+  scope: resourceGroup(acrRG)
+  params: {
+    name: storageAccountName
+    sku: 'Standard_LRS'
+    fileServices: {}
   }
-}
-
-resource fileServices 'Microsoft.Storage/storageAccounts/fileServices@2022-09-01' = {
-  name: 'default'
-  parent: storageAccount
-  properties: {}
-}
-
-resource fileShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2022-09-01' = {
-  name: 'myfileshare'
-  parent: fileServices
-  properties: {}
 }
 
 module fileShareLink 'modules/fileshare.bicep' = {
@@ -72,96 +63,37 @@ module fileShareLink 'modules/fileshare.bicep' = {
   params: {
     name: 'myfileshare'
     containerAppEnvName: containerAppEnvName
-    shareName: fileShare.name
-    accountName: storageAccount.name
-    accountKey: storageAccount.listKeys().keys[0].value
+    storageAccountName: storageAccountName
   }
+  dependsOn: [
+    storageAccount
+  ]
 }
 
-resource acr 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' existing = {
-  name: acrName
-  scope: resourceGroup(acrRG)
-}
-
-resource containerAppEnv 'Microsoft.App/managedEnvironments@2023-05-01' existing = {
-  name: containerAppEnvName
-  scope: resourceGroup(containerAppEnvRG)
-}
-
-var targetPort = 80
-resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
-  name: containerAppName
-  location: location
+module containerApp '../../../shared/container-app.bicep' = {
+  name: 'container-app-${containerAppName}'
   dependsOn: [
     containerApp_identity_acrPullRole
   ]
-  identity: {
-    type: 'UserAssigned'
-    userAssignedIdentities: {
-      '${identity.id}': {}
-    }
-  }
-  properties: {
-    configuration: {
-      ingress: {
-        external: true
-        targetPort: targetPort
+  params: {
+    containerAppEnvName: containerAppEnvName
+    containerAppEnvRG: containerAppEnvRG
+    acrName: acrName
+    acrRG: acrRG
+    identityId: identity.id
+    name: containerAppName
+    ingress: ingress
+    containers: containers
+    scale: scale
+    location: location
+    volumes: [
+      {
+        name: 'myfileshare'
+        storageName: fileShareLink.outputs.filesShareLinkName
+        storageType: 'AzureFile'
       }
-      registries: [
-        {
-          identity: identity.id
-          server: acr.properties.loginServer
-        }
-      ]
-    }
-    environmentId: containerAppEnv.id
-    template: {
-      containers: [
-        {
-          image: '${acr.properties.loginServer}/${image.repository}:${image.tag}'
-          name: containerAppName
-          resources: {
-            cpu: json(resources.cpu)
-            memory: resources.memory
-          }
-          env: [
-            {
-              name: 'FILE_SHARE_PATH'
-              value: 'myfileshare'
-            }
-          ]
-          volumeMounts: [
-            {
-              mountPath: 'myfileshare'
-              volumeName: 'myfileshare'
-            }
-          ]
-          probes: []
-        }
-      ]
-      scale: {
-        minReplicas: 0
-        maxReplicas: 5
-        rules: [
-          {
-            name: 'http-requests'
-            http: {
-              metadata: {
-                concurrentRequests: '1'
-              }
-            }
-          }
-        ]
-      }
-      volumes: [
-        {
-          name: 'myfileshare'
-          storageName: fileShareLink.outputs.filesShareLinkName
-          storageType: 'AzureFile'
-        }
-      ]
-    }
+    ]
   }
 }
 
-output applicationUrl string = containerApp.properties.configuration.ingress.fqdn
+output fqdn string = containerApp.outputs.fqdn

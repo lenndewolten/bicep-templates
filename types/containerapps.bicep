@@ -13,12 +13,18 @@ type EnvironmentVariable = {
   value: string
 }
 
+type VolumeMount = {
+  mountPath: string
+  volumeName: string
+}
+
 @export()
 type Container = {
   image: string
   name: string
   resources: Resource
   env: EnvironmentVariable[]?
+  volumeMounts: VolumeMount[]?
 }
 
 type Traffic = {
@@ -27,11 +33,18 @@ type Traffic = {
 }
 
 @export()
+type Volumn = {
+  name: string
+  storageName: string
+  storageType: 'AzureFile'
+}
+
+@export()
 type Ingress = {
   allowInsecure: bool?
   clientCertificateMode: string?
   external: bool
   targetPort: int
-  transport: string?
+  transport: ('auto' | 'http' | 'http2' | 'tcp')?
   traffic: Traffic[]?
 }

@@ -10,12 +10,44 @@ param acrRG = 'container-apps'
 param containerAppName = 'my-test-container-app'
 param storageAccountName = 'lenntstchtrappfilestrg'
 
-param image = {
-  repository: 'containerapps-helloworld'
-  tag: 'latest'
+param ingress = {
+  external: true
+  targetPort: 80
 }
 
-param resources = {
-  cpu: '0.5'
-  memory: '1Gi'
+param containers = [
+  {
+    image: 'lenndewoltentestacr.azurecr.io/containerapps-helloworld:latest'
+    name: 'hello-world-container'
+    resources: {
+      cpu: '0.25'
+      memory: '0.5Gi'
+    }
+    env: [
+      {
+        name: 'FILE_SHARE_PATH'
+        value: 'myfileshare'
+      }
+    ]
+    volumeMounts: [
+      {
+        mountPath: 'myfileshare'
+        volumeName: 'myfileshare'
+      }
+    ]
+  }
+]
+param scale = {
+  minReplicas: 0
+  maxReplicas: 5
+  rules: [
+    {
+      name: 'http-requests'
+      http: {
+        metadata: {
+          concurrentRequests: '10'
+        }
+      }
+    }
+  ]
 }
