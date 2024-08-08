@@ -1,4 +1,4 @@
-import { Container, Ingress } from '../../../types/containerapps.bicep'
+import { Container, Ingress } from '../../../types/container-app.bicep'
 
 @description('Provide a location for the container resources.')
 param location string = resourceGroup().location
@@ -47,7 +47,7 @@ module containerApp_identity_acrPullRole '../../../shared/role-assignments.bicep
   }
 }
 
-module storageAccount '../../../shared/storageaccount.bicep' = {
+module storageAccount '../../../shared/storage-account.bicep' = {
   name: 'storageaccount-${containerAppName}'
   scope: resourceGroup(acrRG)
   params: {

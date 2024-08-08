@@ -1,38 +1,29 @@
 # Bicep Templates
 
-This repository contains a collection of [Bicep](https://github.com/Azure/bicep) templates for deploying infrastructure on Microsoft Azure. Bicep is a domain-specific language (DSL) for deploying Azure resources declaratively.
+This repository contains various Azure [Bicep](https://github.com/Azure/bicep) templates designed to deploy different Azure resources and scenarios. Each scenario is self-contained and demonstrates how to deploy and configure specific Azure services, such as Container Apps, Storage Accounts, SQL Databases, and more.
 
-## Getting Started
+# Getting Started
 
-### 1. Clone the Repository:
+## Prerequisites
 
-```bash
-git clone https://github.com/lenndewolten/bicep-templates.git
+Before running the Bicep templates, ensure you have:
+
+- Azure CLI: Installed and authenticated with az login.
+- Bicep CLI: Installed for local Bicep file deployment.
+- Jupyter Notebook: If you plan to use the provided Jupyter notebooks to interactively deploy resources.
+
+## Using Jupyter Notebooks
+
+If you prefer using Jupyter notebooks for deploying and testing scenarios, follow these steps:
+
+1. **Launch Jupyter Notebook or use your favorite IDE:**
+
+```
+jupyter notebook
 ```
 
-### 2. Navigate to the Template Directory:
-
-```bash
-cd templates
-```
-
-### 3. Deploy a Template:
-
-Use the `az deployment` command to deploy a specific template. For example:
-
-```bash
-az deployment group create --resource-group <ResourceGroupName> --template-file <TemplateName.bicep> --parameters <ParamName.bicepparam>
-```
-
-Replace `<ResourceGroupName>` with your desired Azure resource group name, `<TemplateName.bicep>` with the name of the Bicep template you want to deploy, and `<ParamName.bicepparam>` with the parameter file.
-
-## Templates
-
-- **Compute**
-  - **Container Apps:** Templates to set up a containerized application environment in Azure.
-  - **Function Apps:** Templates to set up function apps in Azure.
-- **Networking:** Templates to set up a private network, including private DNS zones and private endpoints with the corresponding Azure storage resources
-- **Subscription:** Template to set up subscription wide RBAC role assignment for a user (ME!)
+2. **Navigate to the notebook:** Open the relevant `.ipynb` file in your browser, found in the scenario directory.
+3. **Run Cells:** Use the notebook cells to interactively deploy resources, change parameters, and see real-time outputs.
 
 ## Contributing
 

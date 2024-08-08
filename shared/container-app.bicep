@@ -1,4 +1,4 @@
-import { Container, Ingress, Volumn } from '../types/containerapps.bicep'
+import { Container, Ingress, Volumn } from '../types/container-app.bicep'
 
 @minLength(5)
 @maxLength(50)

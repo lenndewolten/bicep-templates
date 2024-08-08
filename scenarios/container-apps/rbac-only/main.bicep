@@ -1,4 +1,4 @@
-import { Container, Ingress } from '../../../types/containerapps.bicep'
+import { Container, Ingress } from '../../../types/container-app.bicep'
 
 @description('Provide a location for the container resources.')
 param location string = resourceGroup().location
@@ -100,7 +100,7 @@ var storageBlobDataContributorRole = 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
 var storageQueueDataContributorRole = '974c5e8b-45b9-4653-ba55-5f855dd0fb88'
 var storageTableDataContributorRole = '0a9a7e1f-b9d0-4cc4-a60d-0319b160aaa3'
 
-module storageaccount '../../../shared/storageaccount.bicep' = if (storageAccountName != '') {
+module storageaccount '../../../shared/storage-account.bicep' = if (storageAccountName != '') {
   name: 'storageaccount-${containerAppName}'
   params: {
     name: storageAccountName
