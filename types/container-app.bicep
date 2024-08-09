@@ -69,3 +69,34 @@ type Secret = {
   @secure()
   value: string
 }
+
+@export()
+type Scale = {
+  minReplicas: int
+  maxReplicas: int
+  rules: ScaleRule[]
+}
+
+type ScaleRule = {
+  name: string
+  http: {
+    metadata: {
+      concurrentRequests: string
+    }
+  }?
+  azureQueue: {
+    queueLength: int
+    queueName: string
+    auth: ScaleRuleAuth[]
+  }?
+  custom: {
+    auth: ScaleRuleAuth[]
+    type: string
+    metadata: object
+  }?
+}
+
+type ScaleRuleAuth = {
+  secretRef: string
+  triggerParameter: string
+}

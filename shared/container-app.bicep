@@ -1,4 +1,4 @@
-import { Container, Ingress, Volumn, ManagedServiceIdentity, RegistryCredentials, Secret } from '../types/container-app.bicep'
+import { Container, Ingress, Volumn, ManagedServiceIdentity, RegistryCredentials, Secret, Scale } from '../types/container-app.bicep'
 
 @minLength(5)
 @maxLength(50)
@@ -26,7 +26,7 @@ param ingress Ingress
 param containers Container[]
 
 @description('Provide the scale for the container app: https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps?pivots=deployment-language-bicep#scale')
-param scale object
+param scale Scale
 
 @description('Provide the volumes for the container app')
 param volumes Volumn[] = []

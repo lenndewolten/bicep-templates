@@ -1,5 +1,5 @@
 import { Database, Container as CosmosContainer, BackupPolicy, Location, ConsistencyPolicy } from '../../types/cosmosdb.bicep'
-import { Container, Ingress } from '../../types/container-app.bicep'
+import { Container, Ingress, Scale } from '../../types/container-app.bicep'
 
 @description('Cosmos DB settings')
 param cosmosDbConfig CosmosDbConfig
@@ -50,5 +50,5 @@ type ContainerAppConfig = {
   ingress: Ingress
   containers: Container[]
   @description('Provide the scale for the container app: https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps?pivots=deployment-language-bicep#scale')
-  scale: object
+  scale: Scale
 }

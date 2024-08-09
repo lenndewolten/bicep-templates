@@ -1,4 +1,4 @@
-import { Container, Ingress } from '../../../types/container-app.bicep'
+import { Container, Ingress, Scale } from '../../../types/container-app.bicep'
 
 @description('Provide a location for the container resources.')
 param location string = resourceGroup().location
@@ -18,7 +18,7 @@ param ingress Ingress
 param containers Container[]
 
 @description('Provide the scale for the container app: https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps?pivots=deployment-language-bicep#scale')
-param scale object
+param scale Scale
 
 @description('The private registries to be used by the container app')
 param registries Registry[] = []

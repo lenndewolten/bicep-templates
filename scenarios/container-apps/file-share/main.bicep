@@ -1,4 +1,4 @@
-import { Container, Ingress } from '../../../types/container-app.bicep'
+import { Container, Ingress, Scale } from '../../../types/container-app.bicep'
 
 @description('Provide a location for the container resources.')
 param location string = resourceGroup().location
@@ -27,7 +27,7 @@ param containers Container[]
 param ingress Ingress
 
 @description('Provide the scale for the container app: https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps?pivots=deployment-language-bicep#scale')
-param scale object
+param scale Scale
 
 resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   name: identityName
