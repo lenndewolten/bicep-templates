@@ -20,10 +20,8 @@ param containers Container[]
 @description('Provide the scale for the container app: https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps?pivots=deployment-language-bicep#scale')
 param scale object
 
-@description('Provide a name of your Azure Container Registry')
-param acrName string
-@description('Provide the resource group for the container environment.')
-param acrRG string = resourceGroup().name
+@description('The private registries to be used by the container app')
+param registries Registry[] = []
 
 @description('Provide a name of the managed identity.')
 param identityName string = '${containerAppName}-identity'
@@ -31,20 +29,9 @@ param identityName string = '${containerAppName}-identity'
 @description('Provide a name for the storage account if applicable.')
 param storageAccountName string = ''
 
-var acrPullRole = '7f951dda-4ed3-4680-a7ca-43fe172d538d'
-
 resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   name: identityName
   location: location
-}
-
-module containerApp_identity_acrPullRole '../../../shared/role-assignments.bicep' = {
-  name: 'container-app-acr-access-${containerAppName}'
-  scope: resourceGroup(acrRG)
-  params: {
-    principalId: identity.properties.principalId
-    roleDefinitionId: acrPullRole
-  }
 }
 
 var defaultContainerEnv = [
@@ -73,25 +60,26 @@ var storageAccountContainerEnv = storageAccountName != ''
 
 var containerEnv = concat(defaultContainerEnv, storageAccountName != '' ? storageAccountContainerEnv : [])
 
-resource acr 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' existing = {
-  name: acrName
-  scope: resourceGroup(acrRG)
+module _registries './modules/registries.bicep' = {
+  name: 'registries'
+  params: {
+    registries: map(registries, registry => {
+      name: registry.name
+      identity: {
+        resourceId: identity.id
+        principalId: identity.properties.principalId
+      }
+      resourceGroup: registry.resourceGroup
+    })
+  }
 }
 
 module containerApp '../../../shared/container-app.bicep' = {
   name: 'container-app-${containerAppName}'
-  dependsOn: [
-    containerApp_identity_acrPullRole
-  ]
   params: {
     containerAppEnvName: containerAppEnvName
     containerAppEnvRG: containerAppEnvRG
-    registries: [
-      {
-        identity: identity.id
-        server: acr.properties.loginServer
-      }
-    ]
+    registries: _registries.outputs.registries
     identity: {
       type: 'UserAssigned'
       userAssignedIdentities: {
@@ -143,3 +131,8 @@ module storageaccount '../../../shared/storage-account.bicep' = if (storageAccou
 }
 
 output fqdn string = containerApp.outputs.fqdn
+
+type Registry = {
+  name: string
+  resourceGroup: string?
+}

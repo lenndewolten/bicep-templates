@@ -40,9 +40,7 @@ resource containerAppEnv 'Microsoft.App/managedEnvironments@2023-05-01' existing
 }
 
 func filterOutCustomProperties(container Container) object =>
-  contains(container, 'registry')
-    ? intersection(container, union(container, { registry: uniqueString(container.registry!) }))
-    : container
+  intersection(container, union(container, { registry: uniqueString(container.registry!) }))
 
 resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
   name: name
@@ -61,9 +59,9 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
     template: {
       containers: [
         for container in containers: union(filterOutCustomProperties(container), {
-          image: contains(container, 'registry')
-            ? '${filter(registries, reg => contains(reg.server, container.registry! ))[0].server }/${container.image}'
-            : container.image
+          image: empty(filter(registries, reg => contains(reg.server, container.registry)))
+            ? '${container.registry}/${container.image}'
+            : '${filter(registries, reg => contains(reg.server, container.registry ))[0].server }/${container.image}'
           resources: {
             cpu: json(container.resources.cpu)
             memory: container.resources.memory

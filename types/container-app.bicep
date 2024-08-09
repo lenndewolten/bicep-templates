@@ -21,7 +21,7 @@ type VolumeMount = {
 
 @export()
 type Container = {
-  registry: string?
+  registry: string
   image: string
   name: string
   resources: Resource
