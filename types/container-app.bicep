@@ -10,7 +10,8 @@ type Image = {
 
 type EnvironmentVariable = {
   name: string
-  value: string
+  value: string?
+  secretRef: string?
 }
 
 type VolumeMount = {
@@ -20,6 +21,7 @@ type VolumeMount = {
 
 @export()
 type Container = {
+  registry: string?
   image: string
   name: string
   resources: Resource
@@ -47,4 +49,23 @@ type Ingress = {
   targetPort: int
   transport: ('auto' | 'http' | 'http2' | 'tcp')?
   traffic: Traffic[]?
+}
+
+@export()
+type ManagedServiceIdentity = {
+  type: 'UserAssigned' | 'SystemAssigned' | 'SystemAssigned,UserAssigned' | 'None'
+  userAssignedIdentities: object?
+}
+
+@export()
+type RegistryCredentials = {
+  identity: string
+  server: string
+}
+
+@export()
+type Secret = {
+  name: string
+  @secure()
+  value: string
 }

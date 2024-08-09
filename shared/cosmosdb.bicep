@@ -126,4 +126,5 @@ resource accountRoleAssignments 'Microsoft.Authorization/roleAssignments@2022-04
   }
 ]
 
+output accountName string = account.name
 output endpoint string = account.properties.documentEndpoint

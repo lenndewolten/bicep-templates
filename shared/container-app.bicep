@@ -1,4 +1,4 @@
-import { Container, Ingress, Volumn } from '../types/container-app.bicep'
+import { Container, Ingress, Volumn, ManagedServiceIdentity, RegistryCredentials, Secret } from '../types/container-app.bicep'
 
 @minLength(5)
 @maxLength(50)
@@ -13,18 +13,16 @@ param containerAppEnvName string
 @description('Provide the resource group for the container environment.')
 param containerAppEnvRG string = resourceGroup().name
 
-@description('Provide a resource id for the identity.')
-param identityId string
+@description('Provide a identity for the container app.')
+param identity ManagedServiceIdentity = { type: 'None' }
 
-@description('Provide a name of your Azure Container Registry')
-param acrName string
-@description('Provide the resource group for the container environment.')
-param acrRG string = resourceGroup().name
+@description('Provide private registries for the container app if applicable.')
+param registries RegistryCredentials[] = []
 
-@description('Provide the ingress for the container app: https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps?pivots=deployment-language-bicep#ingress')
+@description('Provide the ingress for the container app')
 param ingress Ingress
 
-@description('Provide an array of containers for the container app: https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps?pivots=deployment-language-bicep#container')
+@description('Provide an array of containers for the container app')
 param containers Container[]
 
 @description('Provide the scale for the container app: https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps?pivots=deployment-language-bicep#scale')
@@ -33,43 +31,50 @@ param scale object
 @description('Provide the volumes for the container app')
 param volumes Volumn[] = []
 
+@description('Provide the secrets for the container app')
+param secrets Secret[] = []
+
 resource containerAppEnv 'Microsoft.App/managedEnvironments@2023-05-01' existing = {
   name: containerAppEnvName
   scope: resourceGroup(containerAppEnvRG)
 }
 
-resource acr 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' existing = {
-  name: acrName
-  scope: resourceGroup(acrRG)
-}
+func filterOutCustomProperties(container Container) object =>
+  contains(container, 'registry')
+    ? intersection(container, union(container, { registry: uniqueString(container.registry!) }))
+    : container
 
 resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
   name: name
   location: location
-  identity: {
-    type: 'UserAssigned'
-    userAssignedIdentities: {
-      '${identityId}': {}
-    }
-  }
+  identity: identity
   properties: {
     configuration: {
       ingress: ingress
-      registries: [
-        {
-          identity: identityId
-          server: acr.properties.loginServer
-        }
-      ]
+      registries: registries
+      secrets: map(secrets, secret => {
+        name: replace(toLower(secret.name), '_', '-')
+        value: secret.value
+      })
     }
     environmentId: containerAppEnv.id
     template: {
       containers: [
-        for container in containers: union(container, {
+        for container in containers: union(filterOutCustomProperties(container), {
+          image: contains(container, 'registry')
+            ? '${filter(registries, reg => contains(reg.server, container.registry! ))[0].server }/${container.image}'
+            : container.image
           resources: {
             cpu: json(container.resources.cpu)
             memory: container.resources.memory
           }
+          env: concat(
+            container.?env ?? [],
+            map(secrets, secret => {
+              name: secret.name
+              secretRef: replace(toLower(secret.name), '_', '-')
+            })
+          )
         })
       ]
       scale: scale

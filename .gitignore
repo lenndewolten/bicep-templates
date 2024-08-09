@@ -1,6 +1,8 @@
 **\.vscode
 **\.localdeploy.ps1
 **\.env
+**\.bicepparam
+
 
 ## Function app
 **\.venv

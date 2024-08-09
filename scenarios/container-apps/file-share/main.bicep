@@ -8,10 +8,8 @@ param containerAppEnvName string
 @description('Provide the resource group for the container environment.')
 param containerAppEnvRG string
 
-@description('Provide a name of your Azure Container Registry')
-param acrName string
-@description('Provide the resource group for the container environment.')
-param acrRG string
+@description('The private registries to be used by the container app')
+param registries Registry[] = []
 
 @description('Provide a name for the container app.')
 param containerAppName string
@@ -31,25 +29,14 @@ param ingress Ingress
 @description('Provide the scale for the container app: https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps?pivots=deployment-language-bicep#scale')
 param scale object
 
-var acrPullRole = '7f951dda-4ed3-4680-a7ca-43fe172d538d'
-
 resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   name: identityName
   location: location
 }
 
-module containerApp_identity_acrPullRole '../../../shared/role-assignments.bicep' = {
-  name: 'container-app-acr-access-${containerAppName}'
-  scope: resourceGroup(acrRG)
-  params: {
-    principalId: identity.properties.principalId
-    roleDefinitionId: acrPullRole
-  }
-}
-
 module storageAccount '../../../shared/storage-account.bicep' = {
   name: 'storageaccount-${containerAppName}'
-  scope: resourceGroup(acrRG)
+  scope: resourceGroup(containerAppEnvRG)
   params: {
     name: storageAccountName
     sku: 'Standard_LRS'
@@ -70,17 +57,32 @@ module fileShareLink 'modules/fileshare.bicep' = {
   ]
 }
 
+module _registries './modules/registries.bicep' = {
+  name: 'registries'
+  params: {
+    registries: map(registries, registry => {
+      name: registry.name
+      identity: {
+        resourceId: identity.id
+        principalId: identity.properties.principalId
+      }
+      resourceGroup: registry.resourceGroup
+    })
+  }
+}
+
 module containerApp '../../../shared/container-app.bicep' = {
   name: 'container-app-${containerAppName}'
-  dependsOn: [
-    containerApp_identity_acrPullRole
-  ]
   params: {
     containerAppEnvName: containerAppEnvName
     containerAppEnvRG: containerAppEnvRG
-    acrName: acrName
-    acrRG: acrRG
-    identityId: identity.id
+    registries: _registries.outputs.registries
+    identity: {
+      type: 'UserAssigned'
+      userAssignedIdentities: {
+        '${identity.id}': {}
+      }
+    }
     name: containerAppName
     ingress: ingress
     containers: containers
@@ -97,3 +99,8 @@ module containerApp '../../../shared/container-app.bicep' = {
 }
 
 output fqdn string = containerApp.outputs.fqdn
+
+type Registry = {
+  name: string
+  resourceGroup: string?
+}

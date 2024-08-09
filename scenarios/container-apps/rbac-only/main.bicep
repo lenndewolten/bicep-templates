@@ -73,6 +73,11 @@ var storageAccountContainerEnv = storageAccountName != ''
 
 var containerEnv = concat(defaultContainerEnv, storageAccountName != '' ? storageAccountContainerEnv : [])
 
+resource acr 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' existing = {
+  name: acrName
+  scope: resourceGroup(acrRG)
+}
+
 module containerApp '../../../shared/container-app.bicep' = {
   name: 'container-app-${containerAppName}'
   dependsOn: [
@@ -81,9 +86,18 @@ module containerApp '../../../shared/container-app.bicep' = {
   params: {
     containerAppEnvName: containerAppEnvName
     containerAppEnvRG: containerAppEnvRG
-    acrName: acrName
-    acrRG: acrRG
-    identityId: identity.id
+    registries: [
+      {
+        identity: identity.id
+        server: acr.properties.loginServer
+      }
+    ]
+    identity: {
+      type: 'UserAssigned'
+      userAssignedIdentities: {
+        '${identity.id}': {}
+      }
+    }
     name: containerAppName
     ingress: ingress
     containers: [
