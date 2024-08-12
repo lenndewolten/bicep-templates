@@ -106,3 +106,4 @@ output tablePrimaryEndpoints string = storageAccount.properties.primaryEndpoints
 output queuePrimaryEndpoints string = storageAccount.properties.primaryEndpoints.queue
 
 output resourceId string = storageAccount.id
+output name string = storageAccount.name
