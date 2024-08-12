@@ -1,5 +1,5 @@
-import { Database, Container as CosmosContainer, BackupPolicy, Location, ConsistencyPolicy } from '../../types/cosmosdb.bicep'
-import { Container, Ingress, Scale } from '../../types/container-app.bicep'
+import { Database, Container as CosmosContainer, BackupPolicy, Location, ConsistencyPolicy } from '../../../types/cosmosdb.bicep'
+import { Container, Ingress, Scale } from '../../../types/container-app.bicep'
 
 @description('Cosmos DB settings')
 param cosmosDbConfig CosmosDbConfig
@@ -7,7 +7,7 @@ param cosmosDbConfig CosmosDbConfig
 @description('Container App settings')
 param containerAppConfig ContainerAppConfig
 
-module cosmos '../../shared/cosmosdb.bicep' = {
+module cosmos '../../../shared/cosmosdb.bicep' = {
   name: 'cosmos-deployment'
   params: {
     location: cosmosDbConfig.?location
@@ -49,6 +49,6 @@ type ContainerAppConfig = {
   location: string?
   ingress: Ingress
   containers: Container[]
-  @description('Provide the scale for the container app: https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps?pivots=deployment-language-bicep#scale')
+  @description('Provide the scale for the container app.')
   scale: Scale
 }

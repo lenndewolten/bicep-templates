@@ -1,4 +1,4 @@
-import { Container, Ingress, Scale } from '../../../types/container-app.bicep'
+import { Container, Ingress, Scale } from '../../../../types/container-app.bicep'
 
 @description('Location for the container app.')
 param location string = resourceGroup().location
@@ -17,7 +17,7 @@ param containers Container[]
 @description('Provide the ingress for the container app')
 param ingress Ingress
 
-@description('Provide the scale for the container app: https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps?pivots=deployment-language-bicep#scale')
+@description('Provide the scale for the container app.')
 param scale Scale
 
 @description('Azure Cosmos DB account name, max length 44 characters')
@@ -38,7 +38,7 @@ var containerEnv = concat([
   }
 ])
 
-module containerApp '../../../shared/container-app.bicep' = {
+module containerApp '../../../../shared/container-app.bicep' = {
   name: 'container-app-deployment'
   params: {
     containerAppEnvName: containerAppEnvName

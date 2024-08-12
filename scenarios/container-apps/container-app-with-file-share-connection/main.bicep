@@ -26,7 +26,7 @@ param containers Container[]
 @description('Provide the ingress for the container app')
 param ingress Ingress
 
-@description('Provide the scale for the container app: https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps?pivots=deployment-language-bicep#scale')
+@description('Provide the scale for the container app.')
 param scale Scale
 
 resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {

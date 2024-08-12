@@ -25,7 +25,7 @@ param ingress Ingress
 @description('Provide an array of containers for the container app')
 param containers Container[]
 
-@description('Provide the scale for the container app: https://learn.microsoft.com/en-us/azure/templates/microsoft.app/containerapps?pivots=deployment-language-bicep#scale')
+@description('Provide the scale for the container app.')
 param scale Scale
 
 @description('Provide the volumes for the container app')
