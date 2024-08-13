@@ -20,6 +20,17 @@ module storageAccount '../../../shared/storage-account.bicep' = {
   params: {
     name: '${applicationNameLower}strg'
     sku: 'Standard_LRS'
+    allowSharedKeyAccess: false
+    queueServices: {
+      queues: [
+        {
+          name: 'input-queue'
+        }
+        {
+          name: 'output-queue'
+        }
+      ]
+    }
   }
 }
 
@@ -62,21 +73,19 @@ resource containerAppEnv 'Microsoft.App/managedEnvironments@2024-03-01' existing
   scope: resourceGroup(containerAppEnvRG)
 }
 
-var acrPullRole = '7f951dda-4ed3-4680-a7ca-43fe172d538d'
-
-module functionApp_identity_acrPullRole '../../../shared/role-assignments.bicep' = {
-  name: 'funcapp-acr-access'
+module role_assignments './modules/role_assignments.bicep' = {
+  name: 'role_assignments'
   scope: resourceGroup(registry.resourceGroup ?? resourceGroup().name)
   params: {
     principalId: identity.properties.principalId
-    roleDefinitionId: acrPullRole
+    registry: registry
   }
 }
 
 module functionApp '../../../shared/function-app.bicep' = {
   name: 'function-app'
   dependsOn: [
-    functionApp_identity_acrPullRole
+    role_assignments
   ]
   params: {
     location: location
@@ -85,7 +94,7 @@ module functionApp '../../../shared/function-app.bicep' = {
     identityName: identity.name
     managedEnvironmentId: containerAppEnv.id
     siteConfig: {
-      linuxFxVersion: 'DOCKER|${acr.properties.loginServer}/azurefunctions/quickstart-http-trigger:isolated8-v1.0.0'
+      linuxFxVersion: 'DOCKER|${acr.properties.loginServer}/azurefunctions/quickstart-queue-trigger:isolated8-v1.0.0'
       acrUserManagedIdentityID: identity.id
       acrUseManagedIdentityCreds: true
       minimumElasticInstanceCount: 0
@@ -101,6 +110,7 @@ module functionApp '../../../shared/function-app.bicep' = {
         }
       ]
     }
+    useIdentityOnly: true
     storageAccount: {
       name: storageAccount.outputs.name
     }
@@ -111,6 +121,7 @@ module functionApp '../../../shared/function-app.bicep' = {
 }
 
 output fqdn string = functionApp.outputs.fqdn
+output storageAccountName string = storageAccount.outputs.name
 
 type Registry = {
   name: string

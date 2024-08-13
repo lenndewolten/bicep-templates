@@ -11,7 +11,7 @@ param functionAppName string
 param kind Kind
 
 @description('Provide a identity for the function app.')
-param identity ManagedServiceIdentity = { type: 'None' }
+param identityName string?
 
 @description('Provide the resource ID of the associated container app environment. Required if kind is "azurecontainerapps".')
 param managedEnvironmentId string?
@@ -41,6 +41,10 @@ resource _appInsights 'Microsoft.Insights/components@2020-02-02' existing = {
   scope: resourceGroup(applicationInsights.?resourceGroup ?? resourceGroup().name)
 }
 
+resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = if (identityName != null && identityName != '') {
+  name: identityName!
+}
+
 var storageConnectionString = 'DefaultEndpointsProtocol=https;AccountName=${_storageAccount.name};EndpointSuffix=${az.environment().suffixes.storage};AccountKey=${_storageAccount.listKeys().keys[0].value}'
 
 var appSettings = useIdentityOnly
@@ -48,6 +52,18 @@ var appSettings = useIdentityOnly
       {
         name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
         value: _appInsights.properties.ConnectionString
+      }
+      {
+        name: 'AzureWebJobsStorage__credential'
+        value: 'managedidentity'
+      }
+      {
+        name: 'AzureWebJobsStorage__clientId'
+        value: identity.properties.clientId
+      }
+      {
+        name: 'AzureWebJobsStorage__accountName'
+        value: storageAccount.name
       }
     ]
   : [
@@ -65,7 +81,14 @@ resource functionapp 'Microsoft.Web/sites@2023-12-01' = {
   name: functionAppName
   location: location
   kind: kind
-  identity: identity
+  identity: identityName != null && identityName != ''
+    ? {
+        type: 'UserAssigned'
+        userAssignedIdentities: {
+          '${identity.id}': {}
+        }
+      }
+    : { type: 'None' }
   properties: {
     managedEnvironmentId: managedEnvironmentId
     serverFarmId: serverFarmId

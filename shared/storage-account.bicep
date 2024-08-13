@@ -82,6 +82,12 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
   resource _queueServices 'queueServices@2023-05-01' = if (queueServices != null) {
     name: 'default'
     properties: {}
+
+    resource queues 'queues@2023-05-01' = [
+      for queue in queueServices.?queues ?? []: {
+        name: queue.name
+      }
+    ]
   }
 
   resource _tableServices 'tableServices' = if (tableServices != null) {
