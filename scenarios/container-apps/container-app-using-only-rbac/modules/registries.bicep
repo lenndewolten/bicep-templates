@@ -16,7 +16,7 @@ module containerApp_identity_acrPullRole '../../../../shared/role-assignments.bi
   }
 ]
 
-resource _registries 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' existing = [
+resource _registries 'Microsoft.ContainerRegistry/registries@2023-07-01' existing = [
   for registry in registries: {
     name: registry.name
     scope: resourceGroup(registry.resourceGroup ?? resourceGroup().name)

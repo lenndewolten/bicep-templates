@@ -22,4 +22,10 @@ type BlobService = {
 type TableService = {}
 
 @export()
-type QueueService = {}
+type QueueService = {
+  queues: QueueProperties[]?
+}
+
+type QueueProperties = {
+  name: string
+}
