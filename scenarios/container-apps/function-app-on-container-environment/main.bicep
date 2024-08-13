@@ -6,18 +6,24 @@ param containerAppEnvName string
 @description('Provide the resource group for the container environment.')
 param containerAppEnvRG string
 
+@description('Provide the registry for the function app.')
+param registry Registry
+
 @description('Provide a prefix for the resources.')
 @minLength(5)
 param resourceNamePrefix string
 
+@description('Provide a postfix for the deployment.')
+param deployementPostfix string = newGuid()
+
 var envResourceNamePrefix = toLower(resourceNamePrefix)
+var envDeploymentPostfix = take(uniqueString(toLower(deployementPostfix)), 6)
 
 module storageAccount '../../../shared/storage-account.bicep' = {
-  name: 'storageaccount-${envResourceNamePrefix}'
+  name: 'storageaccount-${envDeploymentPostfix}'
   params: {
     name: '${envResourceNamePrefix}strg'
     sku: 'Standard_LRS'
-    fileServices: {}
   }
 }
 
@@ -45,13 +51,28 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
   }
 }
 
+resource acr 'Microsoft.ContainerRegistry/registries@2023-07-01' existing = {
+  name: registry.name
+  scope: resourceGroup(registry.resourceGroup ?? resourceGroup().name)
+}
+
 module functionApp './modules/functionapp.bicep' = {
-  name: 'function-app'
+  name: 'function-app-${envDeploymentPostfix}'
   params: {
     containerAppEnvName: containerAppEnvName
     containerAppEnvRG: containerAppEnvRG
     functionAppName: '${envResourceNamePrefix}-funcapp'
     storageAccountName: storageAccount.outputs.name
     appInsightsName: appInsights.name
+    registry: registry
+    identityName: '${envResourceNamePrefix}-identity'
+    linuxFxVersion: 'DOCKER|${acr.properties.loginServer}/azurefunctions:quickstart-isolated8-v1.0.0'
   }
+}
+
+output fqdn string = functionApp.outputs.fqdn
+
+type Registry = {
+  name: string
+  resourceGroup: string?
 }

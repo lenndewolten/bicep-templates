@@ -36,7 +36,7 @@ resource workspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
   }
 }
 
-resource acrResource 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' = {
+resource acrResource 'Microsoft.ContainerRegistry/registries@2023-07-01' = {
   name: acrName
   location: location
   sku: {
