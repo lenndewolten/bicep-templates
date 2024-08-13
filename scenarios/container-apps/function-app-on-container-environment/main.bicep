@@ -9,26 +9,22 @@ param containerAppEnvRG string
 @description('Provide the registry for the function app.')
 param registry Registry
 
-@description('Provide a prefix for the resources.')
 @minLength(5)
-param resourceNamePrefix string
+@description('Provide a name for the resources.')
+param applicationName string
 
-@description('Provide a postfix for the deployment.')
-param deployementPostfix string = newGuid()
-
-var envResourceNamePrefix = toLower(resourceNamePrefix)
-var envDeploymentPostfix = take(uniqueString(toLower(deployementPostfix)), 6)
+var applicationNameLower = toLower(applicationName)
 
 module storageAccount '../../../shared/storage-account.bicep' = {
-  name: 'storageaccount-${envDeploymentPostfix}'
+  name: 'storageaccount'
   params: {
-    name: '${envResourceNamePrefix}strg'
+    name: '${applicationNameLower}strg'
     sku: 'Standard_LRS'
   }
 }
 
 resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2021-06-01' = {
-  name: '${envResourceNamePrefix}-la'
+  name: '${applicationNameLower}-la'
   location: location
   properties: any({
     retentionInDays: 30
@@ -42,7 +38,7 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2021-06
 }
 
 resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
-  name: '${envResourceNamePrefix}-ai'
+  name: '${applicationNameLower}-ai'
   location: location
   kind: 'web'
   properties: {
@@ -56,17 +52,62 @@ resource acr 'Microsoft.ContainerRegistry/registries@2023-07-01' existing = {
   scope: resourceGroup(registry.resourceGroup ?? resourceGroup().name)
 }
 
-module functionApp './modules/functionapp.bicep' = {
-  name: 'function-app-${envDeploymentPostfix}'
+resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
+  name: '${applicationNameLower}-identity'
+  location: location
+}
+
+resource containerAppEnv 'Microsoft.App/managedEnvironments@2024-03-01' existing = {
+  name: containerAppEnvName
+  scope: resourceGroup(containerAppEnvRG)
+}
+
+var acrPullRole = '7f951dda-4ed3-4680-a7ca-43fe172d538d'
+
+module containerApp_identity_acrPullRole '../../../shared/role-assignments.bicep' = {
+  name: 'funcapp-acr-access'
+  scope: resourceGroup(registry.resourceGroup ?? resourceGroup().name)
   params: {
-    containerAppEnvName: containerAppEnvName
-    containerAppEnvRG: containerAppEnvRG
-    functionAppName: '${envResourceNamePrefix}-funcapp'
-    storageAccountName: storageAccount.outputs.name
-    appInsightsName: appInsights.name
-    registry: registry
-    identityName: '${envResourceNamePrefix}-identity'
-    linuxFxVersion: 'DOCKER|${acr.properties.loginServer}/azurefunctions:quickstart-isolated8-v1.0.0'
+    principalId: identity.properties.principalId
+    roleDefinitionId: acrPullRole
+  }
+}
+
+module functionApp '../../../shared/function-app.bicep' = {
+  name: 'function-app'
+  dependsOn: [
+    containerApp_identity_acrPullRole
+  ]
+  params: {
+    location: location
+    functionAppName: '${applicationNameLower}-funcapp'
+    kind: 'functionapp,linux,container,azurecontainerapps'
+    identity: {
+      type: 'UserAssigned'
+      userAssignedIdentities: {
+        '${identity.id}': {}
+      }
+    }
+    managedEnvironmentId: containerAppEnv.id
+    siteConfig: {
+      linuxFxVersion: 'DOCKER|${acr.properties.loginServer}/azurefunctions:quickstart-isolated8-v1.0.0'
+      acrUserManagedIdentityID: identity.id
+      acrUseManagedIdentityCreds: true
+      minimumElasticInstanceCount: 0
+      functionAppScaleLimit: 5
+      appSettings: [
+        {
+          name: 'DOCKER_REGISTRY_SERVER_URL'
+          value: acr.properties.loginServer
+        }
+      ]
+    }
+    storageAccount: {
+      name: storageAccount.outputs.name
+    }
+    applicationInsights: {
+      name: appInsights.name
+    }
   }
 }
 
