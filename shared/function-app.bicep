@@ -62,8 +62,16 @@ var appSettings = useIdentityOnly
         value: identity.properties.clientId
       }
       {
-        name: 'AzureWebJobsStorage__accountName'
-        value: storageAccount.name
+        name: 'AzureWebJobsStorage__queueServiceUri'
+        value: _storageAccount.properties.primaryEndpoints.queue
+      }
+      {
+        name: 'AzureWebJobsStorage__blobServiceUri'
+        value: _storageAccount.properties.primaryEndpoints.blob
+      }
+      {
+        name: 'AzureWebJobsStorage__tableServiceUri'
+        value: _storageAccount.properties.primaryEndpoints.table
       }
     ]
   : [
