@@ -21,7 +21,7 @@ type VolumeMount = {
 
 @export()
 type Container = {
-  registry: string
+  registry: Registry
   image: string
   name: string
   resources: Resource
@@ -50,11 +50,10 @@ type Ingress = {
   transport: ('auto' | 'http' | 'http2' | 'tcp')?
   traffic: Traffic[]?
 }
-
 @export()
-type ManagedServiceIdentity = {
-  type: 'UserAssigned' | 'SystemAssigned' | 'SystemAssigned,UserAssigned' | 'None'
-  userAssignedIdentities: object?
+type Registry = {
+  name: string?
+  loginServer: string?
 }
 
 @export()

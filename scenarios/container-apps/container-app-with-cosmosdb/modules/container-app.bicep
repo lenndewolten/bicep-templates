@@ -56,4 +56,4 @@ module containerApp '../../../../shared/container-app.bicep' = {
   }
 }
 
-output containerEnv array = containerEnv
+output fqdn string = containerApp.outputs.fqdn

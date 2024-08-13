@@ -32,6 +32,7 @@ module containerApp './modules/container-app.bicep' = {
 }
 
 output cosmosEndpoint string = cosmos.outputs.endpoint
+output fqdn string = containerApp.outputs.fqdn
 
 type CosmosDbConfig = {
   accountName: string
